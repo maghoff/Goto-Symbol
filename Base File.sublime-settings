@@ -1,22 +1,60 @@
 {
-    "goto_symbol_regexp":
+    "goto_symbol":
     {
-        "PHP":
-        [
-            "^[\\s\\t\\w]*(class|function)\\s\\w+"
-        ],
-        "Python":
-        [
-            "^[\\s\\t]*(class|def)\\s\\w+"
-        ],
-        "JavaScript":
-        [
-            "^[\\s\\t]*(class|function)\\s\\w+",
-            "^[\\s\\t]*[\\w\\s:=\\.]+(new class|function).+"
-        ],
-        "ShellScript":
-        [
-            "^[\\s\\t]*function\\s\\w+"
-        ]
+        // This plugin parse symbol from yours open files and listed
+        // folders in the window's side bar. You can turn off the folders indexing
+        // by setting false to this property.
+        "load_folders": true,
+
+        // "folder_exclude_patterns" allow you to exclude folders from the indexing
+        // process. This list is extended with the sublime text default's one.
+        "folder_exclude_patterns":[],
+
+        // Into the quick panel window, this plugin list symbols and theirs
+        // corresponding filename. By setting false to "display_filename", only
+        // symbol name will be display.
+        "display_filename": true,
+
+        // Be aware, modifing those settings may be powerful, but directly impact
+        // the loading's perf of this plugins. By the way, this may change order
+        // wich one symbols appears into the quick panel window.
+        // Those options allow you to add new language to inspect, and customize
+        // the way their symbols' are defined.
+        "langs":
+        {
+            "PHP":
+            {
+                "file_patterns": [".php"],
+                "symbol_patterns":
+                [
+                    "^[\\s\\t\\w]*(class|function|static|trait|interface|const|var|public|protected|private)\\s\\$?\\w+"
+                ]
+            },
+            "Python":
+            {
+                "file_patterns": [".py",".rpy",".pyw",".cpy"],
+                "symbol_patterns":
+                [
+                    "^[\\s\\t]*(class|def)\\s\\w+"
+                ]
+            },
+            "JavaScript":
+            {
+                "file_patterns": [".js",".jsx"],
+                "symbol_patterns":
+                [
+                    "^[\\s\\t]*(class|function)\\s\\w+",
+                    "^[\\s\\t]*[\\w\\s:=\\.]+(new class|function).+"
+                ]
+            },
+            "ShellScript":
+            {
+                "file_patterns": [".sh",".bash",".zsh"],
+                "symbol_patterns":
+                [
+                      "^[\\s\\t]*function\\s\\w+"
+                ]
+            }
+        }
     }
 }
