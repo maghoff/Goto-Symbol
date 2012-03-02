@@ -158,8 +158,8 @@ class DirectoryParser(threading.Thread):
     def parse_symbol(self):
         global LOADED_FOLDERS
         for folder in self.folders:
-            LOADED_FOLDERS.append(folder)
             if not folder in LOADED_FOLDERS:
+                LOADED_FOLDERS.append(folder)
                 directory = Directory(folder, self.wid)
                 directory.append_symbols()
         self.done = 1
