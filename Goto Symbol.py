@@ -158,10 +158,10 @@ class DirectoryParser(threading.Thread):
     def parse_symbol(self):
         global LOADED_FOLDERS
         for folder in self.folders:
+            LOADED_FOLDERS.append(folder)
             if not folder in LOADED_FOLDERS:
                 directory = Directory(folder, self.wid)
                 directory.append_symbols()
-                LOADED_FOLDERS.append(folder)
         self.done = 1
 
 
@@ -240,8 +240,8 @@ class GotoSymbol():
 
 class GotoSymbolListener(sublime_plugin.EventListener):
     def on_load(self, view):
-        GotoSymbol().load_view(view)
         GotoSymbol().load_folders(view)
+        GotoSymbol().load_view(view)
 
     def on_post_save(self, view):
         GotoSymbol().load_view(view)
