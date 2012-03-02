@@ -216,36 +216,35 @@ class View():
         return region
 
 
-class GotoSymbolListener(sublime_plugin.EventListener):
+class GotoSymbol():
     def load_view(self, view):
         view = View(view)
         view.append_symbols()
 
-    def on_load(self, view):
-        self.load_view(view)
-
-    def on_post_save(self, view):
-        self.load_view(view)
-
-
-class GotoSymbolApplication(sublime_plugin.TextCommand):
-    def __init__(self, view):
-        sublime_plugin.TextCommand.__init__(self, view)
-        self.load_folders()
-
-    def load_folders(self):
-        Prefs().load(sublime.active_window().active_view())
-        for window in sublime.windows():
-            thread = DirectoryParser(window.folders(), window.id())
-            self.show_thread_status(thread, STATUS['loading_folders'], 0)
-            thread.start()
+    def load_folders(self, view):
+        if not view.window() or not view.window().folders():
+            return
+        Prefs().load(view)
+        thread = DirectoryParser(view.window().folders(), view.window().id())
+        self.show_thread_status(thread, STATUS['loading_folders'], 0)
+        thread.start()
 
     def show_thread_status(self, thread, status, x):
-        if not thread.done:
-            x = 0 if x > 3 else x
-            string = status + ('.' * x)
-            sublime.status_message(string)
-            sublime.set_timeout(lambda: self.show_thread_status(thread, status, x + 1), 250)
+        if thread.done:
+            return
+        x = 0 if x > 3 else x
+        string = status + ('.' * x)
+        sublime.status_message(string)
+        sublime.set_timeout(lambda: self.show_thread_status(thread, status, x + 1), 250)
+
+
+class GotoSymbolListener(sublime_plugin.EventListener):
+    def on_load(self, view):
+        GotoSymbol().load_view(view)
+        GotoSymbol().load_folders(view)
+
+    def on_post_save(self, view):
+        GotoSymbol().load_view(view)
 
 
 class GotoSymbolCommand(sublime_plugin.WindowCommand):

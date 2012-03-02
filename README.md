@@ -1,7 +1,7 @@
 Sublime Text 2 plugin: Goto Symbol
 ==================================
 
-This pulgin add a command to Sublime Text 2, allowing you to jump between the symbol of yours open files.
+This plugin add a command to Sublime Text 2, allowing you to jump to the symbol declaration from a word under your carret or a list of symbols.
 
 Supports
 --------
@@ -17,8 +17,14 @@ Submit a patch adding more and i'll include it.
 Using
 -----
 
- * Use ctrl+shift+r (command on OSX) to list the existing symbols into yours open files.
+ * Use ctrl+shift+r (command on OSX) to list the indexed symbols.
  * While your cursor is on a word, use alt+click to jump to the relative symbol's definition of the word.
+
+Notes
+-----
+
+ * Sometimes, system doesn't allow using of alt+click, you'll need to remap the key binding.
+ * After the installation, you'll need to restart sublime text.
 
 Installation
 ------------
@@ -34,10 +40,23 @@ The recommmended method of installation is via Package Control. It will download
 
 Go to your Sublime Text 2 Packages directory and clone the repository using the command below:
 
-    git clone https://github.com/SublimeText/Goto Symbol "Goto Symbol"
+    git clone https://github.com/crazycooder/Goto-Symbo "Goto Symbol"
 
 ### Download Manually ###
 
 * Download the files using the GitHub .zip download option
 * Unzip the files and rename the folder to `Goto Symbol`
 * Copy the folder to your Sublime Text 2 Packages directory
+
+Changelog
+---------
+
+### 1.1.1 ###
+ * Updated the way folders are initialized.
+
+### 1.1.0 ###
+ * Added folders indexation.
+
+### 1.0.0 ###
+ * First release.
+
