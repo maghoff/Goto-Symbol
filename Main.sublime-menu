@@ -1,5 +1,16 @@
 [
     {
+        "id": "goto",
+        "children":
+        [
+            {
+                "command": "goto_symbol",
+                "args": {"action": "list_all"},
+                "caption": "Goto Folders Symbol..."
+            }
+        ]
+    },
+    {
         "caption": "Preferences",
         "mnemonic": "n",
         "id": "preferences",
@@ -17,12 +28,12 @@
                         [
                             {
                                 "command": "open_file",
-                                "args": {"file": "${packages}/Goto Symbol/Base File.sublime-settings"},
+                                "args": {"file": "${packages}/Goto Symbol/Goto Symbol.sublime-settings"},
                                 "caption": "Settings – Default"
                             },
                             {
                                 "command": "open_file",
-                                "args": {"file": "${packages}/User/Base File.sublime-settings"},
+                                "args": {"file": "${packages}/User/Goto Symbol.sublime-settings"},
                                 "caption": "Settings – User"
                             },
                             { "caption": "-" },

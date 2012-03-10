@@ -1,7 +1,15 @@
 #!/usr/bin/python
+
+# TODO :
+# - Ajouter une commande permettant de recharger les dossiers.
+#
+# ISSUES :
+# - Les numeros de lignes retournes ne sont pas toujours conforme, et les redirections sont
+# donc eronnees (consult API sublime text pour appro).
+
+
 import os
 import re
-import operator
 import threading
 import UserList
 import sublime
@@ -9,6 +17,7 @@ import sublime_plugin
 #import inspect
 
 
+STG = sublime.load_settings('Goto Symbol.sublime-settings')
 STATUS = {
     'empty_symbol': ': Goto symbol - unfound matches',
     'loading_folders': ': Goto symbol - loading folders'
@@ -16,17 +25,19 @@ STATUS = {
 
 
 class Prefs:
-    def load(self, view):
-        Prefs.display_filename = view.settings().get('goto_symbol').get('display_filename', 1)
-        Prefs.folders = view.settings().get('goto_symbol').get('load_folders', 1)
-        Prefs.exfolders = view.settings().get('folder_exclude_patterns', [])
-        [Prefs.exfolders.append(x) for x in view.settings().get('goto_symbol').get('folder_exclude_patterns', [])]
-        Prefs.langs = view.settings().get('goto_symbol').get('langs', {})
+    def load(self):
+        Prefs.display_filename = STG.get('display_filename', 1)
+        Prefs.folders = STG.get('load_folders', 1)
+        Prefs.exfolders = STG.get('folder_exclude_patterns', [])
+        [Prefs.exfolders.append(x) for x in STG.get('folder_exclude_patterns', [])]
+        Prefs.langs = STG.get('langs', {})
+        Prefs.trim_and_order = STG.get('trim_and_order', 0)
 
 
 class SymbolList(UserList.UserList):
     def sort(self):
-        self.sort(key=operator.attrgetter('name'))
+        #self.data = sorted(self.data, key=operator.attrgetter('name'), reverse=False)
+        self.data = sorted(self.data, key=lambda Symbol: Symbol.name)
 
     def list_all(self, wid):
         results = []
@@ -61,8 +72,10 @@ class Symbol():
     def __init__(self, file, line, name, wid):
         self.file = file
         self.filename = self.get_filename()
+        self.ifilename = self.get_filename().strip()
         self.line = line
-        self.name = name
+        self.name = name.strip()
+        self.iname = name
         self.wid = wid
         #print self
 
@@ -73,10 +86,12 @@ class Symbol():
         return "[%s]%s[:%s] %s" % (self.wid, self.file, self.line, self.name)
 
     def __repr_panel__(self):
+        name = self.iname if not Prefs.trim_and_order else self.name
         if not Prefs.display_filename:
-            return self.name
+            return name
         else:
-            return [self.name, re.match('^(\s|\t)*', self.name).group() + self.filename]
+            filename = self.filename if not Prefs.trim_and_order else self.ifilename
+            return [name, "%s, l.%d" % (filename, self.line)]
 
     def get_filename(self):
         if self.file:
@@ -129,7 +144,7 @@ class Directory():
                 for file in files:
                     file = File(root, file)
                     if file.lang:
-                            results.append(file)
+                        results.append(file)
         return results
 
     def clear_symbols(self, file):
@@ -142,7 +157,8 @@ class Directory():
             for match in file.get_symbols():
                 symbol = Symbol(file.get_path(), match['line'], match['str'], self.wid)
                 SYMBOL_LIST.append(symbol)
-        #SYMBOL_LIST.sort()
+        if Prefs.trim_and_order:
+            SYMBOL_LIST.sort()
 
 
 class DirectoryParser(threading.Thread):
@@ -173,7 +189,7 @@ class Region(sublime.Region):
         self.symbol = Symbol(self.get_file(), self.get_line(), self.get_name(), self.wid)
 
     def get_line(self):
-        return self.view.rowcol(self.begin())[0] + 1
+        return self.view.rowcol(self.begin())[0]
 
     def get_file(self):
         return self.view.file_name()
@@ -190,7 +206,6 @@ class Region(sublime.Region):
 class View():
     def __init__(self, view):
         self.view = view
-        Prefs().load(self.view)
 
     def clear_symbols(self):
         file = self.view.file_name()
@@ -204,9 +219,11 @@ class View():
         if lang:
             for rx in lang['symbol_patterns']:
                 for region in self.view.find_all(rx, sublime.IGNORECASE):
+                    region = self.view.lines(region)[-1]
                     region = Region(self.view, region.a, region.b)
                     SYMBOL_LIST.append(region.symbol)
-            #SYMBOL_LIST.sort()
+        if Prefs.trim_and_order:
+            SYMBOL_LIST.sort()
 
     @staticmethod
     def last_selected_word(view):
@@ -221,13 +238,16 @@ class GotoSymbol():
         view = View(view)
         view.append_symbols()
 
-    def load_folders(self, view):
-        if not view.window() or not view.window().folders():
+    def load_folders(self):
+        if not sublime.active_window() or not sublime.active_window().folders():
             return
-        Prefs().load(view)
-        thread = DirectoryParser(view.window().folders(), view.window().id())
-        self.show_thread_status(thread, STATUS['loading_folders'], 0)
+        thread = DirectoryParser(sublime.active_window().folders(), sublime.active_window().id())
+        #self.show_thread_status(thread, STATUS['loading_folders'], 0)
         thread.start()
+
+    def inspect_folders(self):
+        GotoSymbol().load_folders()
+        sublime.set_timeout(lambda: GotoSymbol().inspect_folders(), 3000)
 
     def show_thread_status(self, thread, status, x):
         if thread.done:
@@ -240,7 +260,6 @@ class GotoSymbol():
 
 class GotoSymbolListener(sublime_plugin.EventListener):
     def on_load(self, view):
-        GotoSymbol().load_folders(view)
         GotoSymbol().load_view(view)
 
     def on_post_save(self, view):
@@ -252,6 +271,10 @@ class GotoSymbolCommand(sublime_plugin.WindowCommand):
         method = getattr(self, action)
         if method:
             method()
+
+    def load_folders(self):
+        GotoSymbol().load_folders()
+        sublime.set_timeout(lambda: self.load_folders(), 3000)
 
     def list_all(self):
         self.symbols = SYMBOL_LIST.list_all(self.window.id())
@@ -280,3 +303,5 @@ class GotoSymbolCommand(sublime_plugin.WindowCommand):
 # Main ()
 LOADED_FOLDERS = []
 SYMBOL_LIST = SymbolList()
+Prefs().load()
+sublime.set_timeout(lambda: GotoSymbol().inspect_folders(), 3000)
