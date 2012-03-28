@@ -50,6 +50,9 @@ Go to your Sublime Text 2 Packages directory and clone the repository using the 
 Changelog
 ---------
 
+### 1.2.1 ###
+ * Added a reset command.
+
 ### 1.2.0 ###
  * Added context menu.
  * Added Goto menu entry.

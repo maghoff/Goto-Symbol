@@ -8,5 +8,10 @@
         "caption": "Goto Symbol : Find symbol under caret...",
         "command": "goto_symbol",
         "args": { "action": "list_carret_matches" }
+    },
+    {
+        "caption": "Goto Symbol : Reset symbols",
+        "command": "goto_symbol",
+        "args": { "action": "reset" }
     }
 ]

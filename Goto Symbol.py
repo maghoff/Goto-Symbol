@@ -234,6 +234,11 @@ class View():
 
 
 class GotoSymbol():
+    def reset(self):
+        global SYMBOL_LIST, LOADED_FOLDERS
+        SYMBOL_LIST = SymbolList()
+        LOADED_FOLDERS = []
+
     def load_view(self, view):
         view = View(view)
         view.append_symbols()
@@ -272,9 +277,10 @@ class GotoSymbolCommand(sublime_plugin.WindowCommand):
         if method:
             method()
 
-    def load_folders(self):
-        GotoSymbol().load_folders()
-        sublime.set_timeout(lambda: self.load_folders(), 3000)
+    def reset(self):
+        GotoSymbol().reset()
+        for view in self.window.views():
+            GotoSymbol().load_view(view)
 
     def list_all(self):
         self.symbols = SYMBOL_LIST.list_all(self.window.id())
